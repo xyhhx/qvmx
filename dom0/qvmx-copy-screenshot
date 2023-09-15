@@ -1,0 +1,19 @@
+#!/bin/bash
+
+dom0_screenshots_dir="$HOME/Pictures/Screenshots"
+dest_qubes_incoming_dir="/home/user/QubesIncoming/dom0"
+dest_pics_dir="/home/user/Pictures"
+
+destvm=$(qvm-ls --running --no-spinner -o simple | tail -n +2 | awk '{print $1}' | gum filter)
+
+[[ "$destvm" == "" ]] && exit
+
+qty=$(gum input --placeholder "Enter the number of screenshots to move")
+
+[[ "$qty" == "" ]] && exit
+[[ $qty =~ ^[0-9]+$ ]] || "$(echo "Non-numeric input! Exiting." && exit)"
+
+pushd "$dom0_screenshots_dir" &&
+  qvm-copy-to-vm "$destvm" "$(ls -l | tail -n "$qty" | awk '{ print $NF }')" &&
+  qvm-run "$destvm" "mv $dest_qubes_incoming_dir/*.png $dest_pics_dir/" &&
+  popd || exit

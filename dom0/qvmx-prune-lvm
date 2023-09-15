@@ -1,0 +1,13 @@
+#!/bin/bash
+
+gum confirm --default="No" "This will delete backup volumes in the LVM pool and is irreversible. Continue?" || exit 1
+
+delete_matrix_vols=$(gum confirm --default="No" "Delete Matrix qubes backups, too?")
+vols=$(sudo lvs | awk '{ print "qubes_dom0/" $1 }' | grep -e back)
+$delete_matrix_vols && vols=$(echo "$vols" | grep -v "matrix")
+
+printf "%s\n\n" "The following volumes will be deleted:"
+echo "$vols"
+
+gum confirm --default="No" "Last chance. Delete these volumes?" &&
+    sudo lvremove "$vols" -y
